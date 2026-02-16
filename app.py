@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 
 # Load model
-model = tf.keras.models.load_model("model.keras")
+model = tf.keras.models.load_model("model.h5")
 
 class_names = ["airplane", "cat", "tree"]
 
