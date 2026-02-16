@@ -1,43 +1,31 @@
 import streamlit as st
-import pickle
+import tensorflow as tf
 import numpy as np
 from PIL import Image
 
-# Load trained model
-with open("model.pkl", "rb") as f:
-    model = pickle.load(f)
+# Load model
+model = tf.keras.models.load_model("model.keras")
 
-# IMPORTANT: Must match label order used during training
 class_names = ["airplane", "cat", "tree"]
 
 st.set_page_config(page_title="Image Classifier", layout="centered")
 
-st.title("🐱🌳✈️ Image Classification App")
-st.write("Upload an image of **Airplane, Cat, or Tree**")
+st.title("🐱🌳✈️ Cat vs Tree vs Airplane Classifier")
 
-uploaded_file = st.file_uploader("Drag and Drop Image Here", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_container_width=True)
+    st.image(image, use_container_width=True)
 
-    # Preprocess (must match training)
     img = image.resize((64, 64))
     img = np.array(img) / 255.0
-    img = img.reshape(1, -1)  # Flatten for sklearn model
+    img = np.expand_dims(img, axis=0)
 
-    # Predict
     prediction = model.predict(img)
-
-    if hasattr(model, "predict_proba"):
-        probabilities = model.predict_proba(img)[0]
-        confidence = np.max(probabilities) * 100
-    else:
-        confidence = None
-
-    predicted_class = class_names[prediction[0]]
+    predicted_class = class_names[np.argmax(prediction)]
+    confidence = np.max(prediction) * 100
 
     st.success(f"Prediction: {predicted_class}")
+    st.info(f"Confidence: {confidence:.2f}%")
 
-    if confidence:
-        st.info(f"Confidence: {confidence:.2f}%")
